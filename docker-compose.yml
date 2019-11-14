@@ -1,0 +1,45 @@
+version: '3'
+services:
+  zookeeper:
+    image: jplock/zookeeper
+    container_name: nodejs-zookeeper
+    ports:
+      - 2181:2181
+  kafka:
+    image: wurstmeister/kafka:2.12-2.2.1
+    container_name: nodejs-kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_CREATE_TOPICS: test-topic:1:1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    ports:
+      - 9092:9092
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  producer:
+    build: ./producer
+    container_name: nodejs-producer
+    restart: always
+    depends_on:
+      - zookeeper
+      - kafka
+    ports:
+      - 3004:3004
+    environment:
+      PRODUCER_PORT: 3004
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CONNECT: kafka:9092
+  consumer:
+    build: ./consumer
+    container_name: nodejs-consumer
+    restart: always
+    depends_on:
+      - zookeeper
+      - kafka
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CONNECT: kafka:9092
