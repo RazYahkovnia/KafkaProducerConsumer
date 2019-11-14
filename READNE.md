@@ -8,4 +8,3 @@ For posting data to kafka use the producer via POST method to `http://localhost:
 
 You can see the data from the consumer logs in terminal.
 
-
